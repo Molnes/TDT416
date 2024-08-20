@@ -1,5 +1,5 @@
 {
-  description = "Sample Nix Flake";
+  description = "Nix flake for TDT4165 - Programmeringsspråk"; 
 
   inputs = {
       nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
