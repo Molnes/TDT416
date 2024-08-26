@@ -4,3 +4,5 @@
 2. Run './enable_flake.sh' to enable flake support
 3. Run 'nix develop' to enter the development environment
 
+## Assignments
+Assignments are in -> [README.md](Assignments/README.md)
