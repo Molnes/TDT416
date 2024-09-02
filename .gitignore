@@ -1,3 +1,4 @@
 .metals/metals.lock.db
 *.ozf
 .scala-build
+.metals/
