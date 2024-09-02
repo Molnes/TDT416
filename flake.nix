@@ -18,6 +18,7 @@
             pkgs.mozart2
             pkgs.scala_3
             pkgs.gprolog
+            pkgs.texliveTeTeX
           ];
 
 
