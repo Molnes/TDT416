@@ -1,0 +1,197 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{alltt}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath}
+
+% Changed the section command to say "Task #"
+\def\thesection{Task \arabic{section}:}
+% Added a familiar HTML command for new paragraph
+\newcommand{\p}{\medskip\noindent}
+
+% Meta, should be edited and filled in with relative information
+\title{TDT4165 Programming Languages Assignment 2}
+\author{Jakob Holkestad Molnes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% Use \section for tasks
+\section{}
+Here you can write your theory answers, explain code or just include a screenshot.
+
+
+\begin{lstlisting}[language=Oz]
+    % Task 1
+% a)
+fun {Lex Input}
+   {String.tokens Input 32}
+end
+
+{System.showInfo "Task 1a: "}
+{Show {Lex "1 2 + 3 *"}}
+
+
+% b)
+
+fun {Tokenize Lexemes}
+   case Lexemes of H|T then
+      if {String.isFloat H} then
+         number(1:{String.toFloat H})
+      elseif {List.member H ["+" "-" "/" "*"]} then
+         operator(type: case H of "+" then "plus"
+                                 [] "-" then "minus"
+                                 [] "*" then "multiply"
+                                 [] "/" then "divide" end)
+      else 
+         H
+      end
+      | {Tokenize T}
+   else 
+      nil
+   end
+end
+
+{System.showInfo "Task 1b: "}
+{Show {Tokenize {Lex "1 2 + 3 *"}}}
+
+
+% c)
+fun {Interpret Tokens}
+   {TrueInterpret Tokens nil}
+end
+
+fun {TrueInterpret Tokens Stack}
+   case Tokens of operator(type:C)|Rest then
+      case Stack of N1|N2|Tail then
+         if C == "plus" then
+            {TrueInterpret Rest (N1+N2 | Tail)}
+         elseif C == "minus" then
+            {TrueInterpret Rest (N1-N2 | Tail)}
+         elseif C == "divide" then
+            {TrueInterpret Rest (N1/N2 | Tail)}
+         else
+            {TrueInterpret Rest (N1*N2 | Tail)}
+         end
+      end
+   [] number(N)|Tail then
+      {TrueInterpret Tail (N | Stack)}
+   [] Head|Tail then
+      if Head == "p" then 
+         {Show Stack}
+         {TrueInterpret Tail Stack}
+      elseif Head == "d" then
+         {TrueInterpret Tail (Stack.1 | Stack)}
+      elseif Head == "i" then
+         case Stack of Head|Rest then
+            {TrueInterpret Tail (~Head | Rest)}
+         end
+      elseif Head == "c" then
+         {TrueInterpret Tail nil}
+      end
+   else
+      Stack
+   end
+end
+
+
+{System.showInfo "Task 1c: "}
+{Show {Interpret {Tokenize {Lex "1 2 3 +"}}}}
+
+
+
+% d)
+
+{System.showInfo "Task 1d: "}
+{Show {Interpret {Tokenize {Lex "1 2 p 3 +"}}}}
+
+
+% e)
+
+{System.showInfo "Task 1e: "}
+{Show {Interpret {Tokenize {Lex "1 2 3 + d"}}}}
+
+% f)
+
+{System.showInfo "Task 1f: "}
+{Show {Interpret {Tokenize {Lex "1 2 3 + i"}}}}
+
+% g)
+
+{System.showInfo "Task 1g: "}
+{Show {Interpret {Tokenize {Lex "1 2 3 + c"}}}}
+\end{lstlisting}
+
+
+
+
+
+
+
+\section{}
+% task Attempt task 2, meaning you have to try to implement the postfix-to-tree converter. You are required
+% to include a high-level description of how the conversion works, even if you have not implemented the
+% task.
+\begin{lstlisting}
+    % Task 2
+% a)
+fun {ExpressionTreeInternal Tokens ExpressionStack} NewExpr in
+   case Tokens of operator(type:Op)|Rest then
+      case ExpressionStack of E1|E2|Tail then
+         NewExpr = case Op of
+                      "plus" then plus(E1 E2)
+                   [] "minus" then minus(E1 E2)
+                   [] "multiply" then multiply(E1 E2)
+                   [] "divide" then divide(E1 E2)
+                   end
+         {ExpressionTreeInternal Rest (NewExpr | Tail)}
+      end
+   [] number(N)|Rest then
+      {ExpressionTreeInternal Rest (N | ExpressionStack)}
+   else
+      ExpressionStack.1
+   end
+end
+
+{System.showInfo "Task 2a: "}
+{Show {ExpressionTreeInternal {Tokenize {Lex "2 3 + 5 /"}} nil}}
+
+% b)
+
+fun {ExpressionTree Tokens}
+   {ExpressionTreeInternal Tokens nil}
+end
+
+{System.showInfo "Task 2b: "}
+{Show {ExpressionTree {Tokenize {Lex "3 10 9 * - 7 +"}}}}
+\end{lstlisting}
+
+To explain how the conversion works in a high-level description, we can say that the conversion from postfix to a tree structure is done by first tokenizing the input string, then interpreting the tokens into a tree structure. The tree structure is built by recursively interpreting the tokens, and building the tree from the bottom up. The tree is built by pushing numbers onto a stack, and when an operator is encountered, the two top elements of the stack are popped and used as the operands for the operator. The result of the operation is then pushed back onto the stack. This process is repeated until all tokens have been interpreted, and the final result is the root of the tree.
+
+
+% Command for next page
+\clearpage
+
+\section{}
+Task 3: Theory
+a) Describe the grammar of the lexemes in Task 1 using a formal notation. This means not using EBNF,
+but using the formal notation with sets and tuples. Refer to slide 53 in Lecture 2.
+b) Describe the grammar of the records returned by the ExpressionTree function in Task 3, using (E)BNF.
+c) Which kind of grammar is the grammar you defined in step a)? Is it regular, context-free, context-sensitive,
+or unconstrained? What about the one from step b)?
+
+
+a) The grammar of the lexemes in Task 1 can be described as a set of tuples, where each tuple consists of a string and a type. The type can be either a number, an operator, or a string. The grammar can be described as follows:
+\begin{lstlisting}[mathescape,escapechar=\%]
+    V =  {root}
+    S = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, +, -, *, /, p, d, i, c}
+    R = {root, S}
+    $v_s$ = root
+\end{lstlisting}
+
+
+\end{document}
