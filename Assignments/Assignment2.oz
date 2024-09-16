@@ -105,10 +105,10 @@ fun {ExpressionTreeInternal Tokens ExpressionStack} NewExpr in
    case Tokens of operator(type:Op)|Rest then
       case ExpressionStack of E1|E2|Tail then
          NewExpr = case Op of
-                      "plus" then plus(E2 E1)
-                   [] "minus" then minus(E2 E1)
-                   [] "multiply" then multiply(E2 E1)
-                   [] "divide" then divide(E2 E1)
+                      "plus" then plus(E1 E2)
+                   [] "minus" then minus(E1 E2)
+                   [] "multiply" then multiply(E1 E2)
+                   [] "divide" then divide(E1 E2)
                    end
          {ExpressionTreeInternal Rest (NewExpr | Tail)}
       end
