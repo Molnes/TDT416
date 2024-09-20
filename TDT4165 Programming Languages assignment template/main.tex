@@ -8,7 +8,7 @@
 \usepackage{amsmath}
 
 % Changed the section command to say "Task #"
-\def\thesection{Task \arabic{section}:}
+\def\thesection{Task \arabic{section}}
 % Added a familiar HTML command for new paragraph
 \newcommand{\p}{\medskip\noindent}
 
@@ -22,120 +22,116 @@
 
 % Use \section for tasks
 \section{}
-Here you can write your theory answers, explain code or just include a screenshot.
+My mdc works by first Lexing the postfix string into a list of lexemes. The lexemes are then tokenized into a list of tokens, where each token is either a number, an operator, or a command. The tokens are then interpreted by pushing numbers onto a stack, and when an operator is encountered, the two top elements of the stack are popped and used as the operands for the operator. The result of the operation is then pushed back onto the stack. The special characters "p", "d", "i", and "c" are used to print the stack, duplicate the top element of the stack, invert the top element of the stack, and clear the stack, respectively. This process is repeated until all tokens have been interpreted, and the final result is the top element of the stack.
 
 
 \begin{lstlisting}[language=Oz]
-    % Task 1
-% a)
-fun {Lex Input}
-   {String.tokens Input 32}
-end
-
-{System.showInfo "Task 1a: "}
-{Show {Lex "1 2 + 3 *"}}
-
-
-% b)
-
-fun {Tokenize Lexemes}
-   case Lexemes of H|T then
-      if {String.isFloat H} then
-         number(1:{String.toFloat H})
-      elseif {List.member H ["+" "-" "/" "*"]} then
-         operator(type: case H of "+" then "plus"
-                                 [] "-" then "minus"
-                                 [] "*" then "multiply"
-                                 [] "/" then "divide" end)
+   % Task 1
+   % a)
+   fun {Lex Input}
+      {String.tokens Input 32}
+   end
+   
+   {System.showInfo "Task 1a: "}
+   {Show {Lex "1 2 + 3 *"}}
+   
+   
+   % b)
+   
+   fun {Tokenize Lexemes}
+      case Lexemes of Head|Tail then 
+           if {String.isFloat Head} then
+              number(1:{String.toFloat Head}) 
+           elseif {List.member Head ["+" "-" "/" "*"] } then 
+              operator(type: case Head of "+" then "plus" 
+                          [] "-" then "minus" 
+                          [] "*" then "multiply" 
+                          [] "/" then "divide" end) 
+           elseif {List.member Head ["p" "c" "d" "i"]} then
+              command(type: case Head of "p" then "print" 
+                      [] "i" then "inverse" 
+                      [] "c" then "clear" 
+                      [] "d" then "duplicate" end)
+           end
+           | {Tokenize Tail}
       else 
-         H
+          nil
       end
-      | {Tokenize T}
-   else 
-      nil
    end
-end
-
-{System.showInfo "Task 1b: "}
-{Show {Tokenize {Lex "1 2 + 3 *"}}}
-
-
-% c)
-fun {Interpret Tokens}
-   {TrueInterpret Tokens nil}
-end
-
-fun {TrueInterpret Tokens Stack}
-   case Tokens of operator(type:C)|Rest then
-      case Stack of N1|N2|Tail then
-         if C == "plus" then
-            {TrueInterpret Rest (N1+N2 | Tail)}
-         elseif C == "minus" then
-            {TrueInterpret Rest (N1-N2 | Tail)}
-         elseif C == "divide" then
-            {TrueInterpret Rest (N1/N2 | Tail)}
-         else
-            {TrueInterpret Rest (N1*N2 | Tail)}
-         end
-      end
-   [] number(N)|Tail then
-      {TrueInterpret Tail (N | Stack)}
-   [] Head|Tail then
-      if Head == "p" then 
-         {Show Stack}
-         {TrueInterpret Tail Stack}
-      elseif Head == "d" then
-         {TrueInterpret Tail (Stack.1 | Stack)}
-      elseif Head == "i" then
-         case Stack of Head|Rest then
-            {TrueInterpret Tail (~Head | Rest)}
-         end
-      elseif Head == "c" then
-         {TrueInterpret Tail nil}
-      end
-   else
-      Stack
+   
+   {System.showInfo "Task 1b: "}
+   {Show {Tokenize {Lex "1 2 + 3 *"}}}
+   
+   
+   % c)
+   fun {Interpret Tokens}
+      {TrueInterpret Tokens nil}
    end
-end
-
-
-{System.showInfo "Task 1c: "}
-{Show {Interpret {Tokenize {Lex "1 2 3 +"}}}}
-
-
-
-% d)
-
-{System.showInfo "Task 1d: "}
-{Show {Interpret {Tokenize {Lex "1 2 p 3 +"}}}}
-
-
-% e)
-
-{System.showInfo "Task 1e: "}
-{Show {Interpret {Tokenize {Lex "1 2 3 + d"}}}}
-
-% f)
-
-{System.showInfo "Task 1f: "}
-{Show {Interpret {Tokenize {Lex "1 2 3 + i"}}}}
-
-% g)
-
-{System.showInfo "Task 1g: "}
-{Show {Interpret {Tokenize {Lex "1 2 3 + c"}}}}
+   
+   fun {TrueInterpret Tokens Stack}
+      case Tokens of operator(type:C)|Rest then
+          case Stack of N1|N2|Tail then
+              if C == "plus" then
+                  {TrueInterpret Rest (N1+N2 | Tail)}
+              elseif C == "minus" then
+                  {TrueInterpret Rest (N1-N2 | Tail)}
+              elseif C == "divide" then
+                  {TrueInterpret Rest (N1/N2 | Tail)}
+              elseif C == "multiply" then
+                  {TrueInterpret Rest (N1*N2 | Tail)}
+              end
+          end
+      [] number(N)|Tail then
+          {TrueInterpret Tail (N | Stack)}
+      [] command(type:Action)|Tail then
+          if Action == "print" then
+              {Show Stack}
+              {TrueInterpret Tail Stack}
+          elseif Action == "duplicate" then
+              {TrueInterpret Tail (Stack.1 | Stack)}
+          elseif Action == "inverse" then
+              case Stack of Head|Rest then
+                  {TrueInterpret Tail (~Head | Rest)}
+              end
+          elseif Action == "clear" then
+              {TrueInterpret Tail nil}
+          end
+      else
+          Stack
+      end
+   end
+   
+   
+   {System.showInfo "Task 1c: "}
+   {Show {Interpret {Tokenize {Lex "1 2 3 +"}}}}
+   
+   
+   
+   % d)
+   
+   {System.showInfo "Task 1d: "}
+   {Show {Interpret {Tokenize {Lex "1 2 p 3 +"}}}}
+   
+   
+   % e)
+   
+   {System.showInfo "Task 1e: "}
+   {Show {Interpret {Tokenize {Lex "1 2 3 + d"}}}}
+   
+   % f)
+   
+   {System.showInfo "Task 1f: "}
+   {Show {Interpret {Tokenize {Lex "1 2 3 + i"}}}}
+   
+   % g)
+   
+   {System.showInfo "Task 1g: "}
+   {Show {Interpret {Tokenize {Lex "1 2 3 + c"}}}}
+   
 \end{lstlisting}
 
 
-
-
-
-
-
 \section{}
-% task Attempt task 2, meaning you have to try to implement the postfix-to-tree converter. You are required
-% to include a high-level description of how the conversion works, even if you have not implemented the
-% task.
 \begin{lstlisting}
     % Task 2
 % a)
@@ -177,21 +173,46 @@ To explain how the conversion works in a high-level description, we can say that
 \clearpage
 
 \section{}
-Task 3: Theory
-a) Describe the grammar of the lexemes in Task 1 using a formal notation. This means not using EBNF,
-but using the formal notation with sets and tuples. Refer to slide 53 in Lecture 2.
-b) Describe the grammar of the records returned by the ExpressionTree function in Task 3, using (E)BNF.
-c) Which kind of grammar is the grammar you defined in step a)? Is it regular, context-free, context-sensitive,
-or unconstrained? What about the one from step b)?
+
+\subsection{a)}
+\textit{Describe the grammar of the lexemes in Task 1 using a formal notation. This means not using EBNF,
+but using the formal notation with sets and tuples. Refer to slide 53 in Lecture 2.}
 
 
-a) The grammar of the lexemes in Task 1 can be described as a set of tuples, where each tuple consists of a string and a type. The type can be either a number, an operator, or a string. The grammar can be described as follows:
+ The grammar of the lexemes in Task 1 can be described as a set of tuples, where each tuple consists of a string and a type. The type can be either a number, an operator, or a string. The grammar can be described as follows:
 \begin{lstlisting}[mathescape,escapechar=\%]
-    V =  {root}
-    S = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, +, -, *, /, p, d, i, c}
-    R = {root, S}
-    $v_s$ = root
-\end{lstlisting}
+   V = {root}
+   S = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, +, -, *, /, p, c, d, i}
+   R = {root, S}
+   \end{lstlisting}
 
+   \subsection{b)}
+   \textit{Describe the grammar of the records returned by the ExpressionTree function in Task 2, using (E)BNF}
+   
+   The grammar for the records returned by the ExpressionTree function in Task 2 can be described using the following EBNF:
+   \begin{lstlisting}[mathescape,escapechar=\%]
+   start       ::==    <number> 
+               |       <operation>
+   
+   <operation> ::==    <operator>(<number> <number>) 
+               |       <operator>(<operation> <operation>) 
+               |       <operator>(<number> <operation>) 
+               |       <operator>(<operation> <number>)
+   
+   <operator>  ::==    plus 
+               |       minus 
+               |       multiply 
+               |       divide
+   
+   <number>    ::==    <number><number>
+               | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0
+   \end{lstlisting}
+   
+   \subsection{c)}
+   \textit{
+   Which kind of grammar is the grammar you defined in step a)? Is it regular, context-free, context-sensitive, or unconstrained? What about the one from step b)?
+   }
 
-\end{document}
+   I think step A) is regular grammar due to the simplicity of tokens. While task B) is context-free due to the recursive nature of the expression tree.
+   
+   \end{document}

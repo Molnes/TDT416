@@ -13,20 +13,23 @@ end
 % b)
 
 fun {Tokenize Lexemes}
-   case Lexemes of H|T then
-      if {String.isFloat H} then
-         number(1:{String.toFloat H})
-      elseif {List.member H ["+" "-" "/" "*"]} then
-         operator(type: case H of "+" then "plus"
-                                 [] "-" then "minus"
-                                 [] "*" then "multiply"
-                                 [] "/" then "divide" end)
-      else 
-         H
-      end
-      | {Tokenize T}
+   case Lexemes of Head|Tail then 
+        if {String.isFloat Head} then
+           number(1:{String.toFloat Head}) 
+        elseif {List.member Head ["+" "-" "/" "*"] } then 
+           operator(type: case Head of "+" then "plus" 
+                       [] "-" then "minus" 
+                       [] "*" then "multiply" 
+                       [] "/" then "divide" end) 
+        elseif {List.member Head ["p" "c" "d" "i"]} then
+           command(type: case Head of "p" then "print" 
+                   [] "i" then "inverse" 
+                   [] "c" then "clear" 
+                   [] "d" then "duplicate" end)
+        end
+        | {Tokenize Tail}
    else 
-      nil
+       nil
    end
 end
 
@@ -41,34 +44,34 @@ end
 
 fun {TrueInterpret Tokens Stack}
    case Tokens of operator(type:C)|Rest then
-      case Stack of N1|N2|Tail then
-         if C == "plus" then
-            {TrueInterpret Rest (N1+N2 | Tail)}
-         elseif C == "minus" then
-            {TrueInterpret Rest (N1-N2 | Tail)}
-         elseif C == "divide" then
-            {TrueInterpret Rest (N1/N2 | Tail)}
-         else
-            {TrueInterpret Rest (N1*N2 | Tail)}
-         end
-      end
+       case Stack of N1|N2|Tail then
+           if C == "plus" then
+               {TrueInterpret Rest (N1+N2 | Tail)}
+           elseif C == "minus" then
+               {TrueInterpret Rest (N1-N2 | Tail)}
+           elseif C == "divide" then
+               {TrueInterpret Rest (N1/N2 | Tail)}
+           elseif C == "multiply" then
+               {TrueInterpret Rest (N1*N2 | Tail)}
+           end
+       end
    [] number(N)|Tail then
-      {TrueInterpret Tail (N | Stack)}
-   [] Head|Tail then
-      if Head == "p" then 
-         {Show Stack}
-         {TrueInterpret Tail Stack}
-      elseif Head == "d" then
-         {TrueInterpret Tail (Stack.1 | Stack)}
-      elseif Head == "i" then
-         case Stack of Head|Rest then
-            {TrueInterpret Tail (~Head | Rest)}
-         end
-      elseif Head == "c" then
-         {TrueInterpret Tail nil}
-      end
+       {TrueInterpret Tail (N | Stack)}
+   [] command(type:Action)|Tail then
+       if Action == "print" then
+           {Show Stack}
+           {TrueInterpret Tail Stack}
+       elseif Action == "duplicate" then
+           {TrueInterpret Tail (Stack.1 | Stack)}
+       elseif Action == "inverse" then
+           case Stack of Head|Rest then
+               {TrueInterpret Tail (~Head | Rest)}
+           end
+       elseif Action == "clear" then
+           {TrueInterpret Tail nil}
+       end
    else
-      Stack
+       Stack
    end
 end
 
