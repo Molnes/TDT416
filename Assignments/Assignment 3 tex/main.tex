@@ -1,0 +1,231 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{alltt}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath}
+
+\lstset{
+    backgroundcolor=\color{green!10},
+    basicstyle=\ttfamily,
+    breaklines=true,
+    columns=fullflexible,
+    frame=single,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{gray},
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+    }
+
+% Changed the section command to say "Task #"
+\def\thesection{Task \arabic{section}}
+% Added a familiar HTML command for new paragraph
+\newcommand{\p}{\medskip\noindent}
+
+% Meta, should be edited and filled in with relative information
+\title{TDT4165 Programming Languages Assignment 3}
+\author{Jakob Holkestad Molnes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% Use \section for tasks
+\section{}
+
+\begin{lstlisting}[language=Oz]
+proc {QuadraticEquation A B C ?RealSol ?X1 ?X2} Delta in
+    Delta = B*B - 4.0*A*C
+    if Delta > 0.0 then
+        X1 = (~B + {Float.sqrt Delta}) / (2.0*A)
+        X2 = (~B - {Float.sqrt Delta}) / (2.0*A)
+        RealSol = true
+    elseif Delta == 0.0 then
+        X1 = ~B / (2.0*A)
+        X2 = ~B / (2.0*A)
+        RealSol = true
+    else
+        RealSol = false
+    end
+end
+\end{lstlisting}
+
+\begin{lstlisting}[language=Oz]
+local RealSol X1 X2 in
+    {QuadraticEquation 2.0 1.0 ~1.0 RealSol X1 X2}
+    {System.show [RealSol X1 X2]}
+end
+\end{lstlisting}
+\subsection{b)}
+\begin{verbatim}
+This has the output: [true 0.5 ~1.0]
+\end{verbatim}
+\begin{lstlisting}[language=Oz]
+local RealSol X1 X2 in
+    {QuadraticEquation 2.0 1.0 2.0 RealSol X1 X2}
+    {System.show [RealSol X1 X2]}
+end
+\end{lstlisting}
+\begin{verbatim}
+This has the output: [false _<optimized> _<optimized>]
+\end{verbatim}
+\subsection{c)}
+Procedual abstractions are useful because they let us define a procedure that can be called multiple times with different arguments. This is useful because it allows us to reuse code and make it more readable.
+
+\subsection{d)}
+In Oz a procedure is a block of code that can be called multiple times with different arguments, while a function is a block of code that can be called multiple times with different arguments and returns a value.
+
+
+
+\section{}
+\begin{lstlisting}[language=Oz]
+fun {Sum List}
+    case List
+        of nil then 0
+        [] H|T then H + {Sum T}
+    end
+end
+
+{System.show {Sum [1 2 3 4 5]}}
+\end{lstlisting}
+\begin{verbatim}
+    Which has the output: 15
+\end{verbatim}
+
+% Command for next page
+\clearpage
+
+\section{}
+
+\subsection{a)}
+
+
+\begin{lstlisting}[language=Oz]
+fun {RightFold List Op U}
+    case List 
+        of nil then U
+        [] H|T then {Op H {RightFold T Op U}}
+    end
+end
+\end{lstlisting}
+
+\subsection{b)}
+
+    \begin{itemize}
+        \item The first line defines a function called RightFold that takes three arguments: List, Op, and U.  
+        \item The second line starts a case statement that checks the list.  
+        \item The third line checks if the list is empty and returns U if it is.  
+        \item The fourth line checks if it is a non-empty list and applies the operation Op to the head of the list and the result of recursively calling RightFold on the tail of the list with the same operation and U.  
+        \item The fifth line ends the case statement.  
+        \item The sixth line ends the function definition.
+    \end{itemize}
+
+\subsection{c)}
+\begin{lstlisting}[language=Oz]
+    local Length Sum in
+    fun {Length List} 
+        {RightFold List fun {$ X Y} 1+Y end 0}
+    end
+
+    fun {Sum List}
+        {RightFold List fun {$ X Y} X+Y end 0}
+    end
+
+    {System.show {Length [1 2 3 4]}}
+    {System.show {Sum [1 2 3 4]}}
+end
+\end{lstlisting}
+\begin{verbatim}
+    Which has the output: 
+    4 
+    10
+\end{verbatim}
+
+\subsection{d)}
+In our case, LeftFold and RightFold would give the same result since we only use additive operations.
+There would be different results if we used subtraction or division operations, since they change based on the order of the operations.
+
+\subsection{e)}
+The appropriate value for U when using RightFold to implement the product of list elements is 1, since multiplying by 1 does not change the value of the product.
+
+\newpage
+\section{}
+\begin{lstlisting}[language=Oz]
+fun {Quadratic A B C}
+    fun {$ X}
+        A*X*X + B*X + C
+    end
+end
+
+{System.show {{Quadratic 3.0 2.0 1.0} 2.0}}
+
+\end{lstlisting}
+\begin{verbatim}
+    Which has the output: 17
+\end{verbatim}
+
+\section{}
+\subsection{a)}
+\begin{lstlisting}[language=Oz]
+fun {LazyNumberGenerator StartValue}
+    number(StartValue
+    fun {$} {LazyNumberGenerator StartValue+1} end)
+end
+
+{System.show {LazyNumberGenerator 0}.1}
+{System.show {{LazyNumberGenerator 0}.2}.1}
+{System.show {{{{{{LazyNumberGenerator 0}.2}.2}.2}.2}.2}.1}
+\end{lstlisting}
+\begin{verbatim}
+    Which has the output:
+    0
+    1
+    5
+\end{verbatim}
+
+\subsection{b)}
+We define a function LazyNumberGenerator that takes a StartValue as an argument and returns a tuple with the StartValue as the first element and a function that returns the next number as the second element. 
+We then call the function with the StartValue 0 and access the first element of the tuple to get the StartValue and the second element to get the function that returns the next number. 
+We then call the function multiple times to get the next number in the sequence. 
+
+
+The limitation of this solution is that it is not very efficient since it uses a lot of memory to store the function calls.
+It is also not very practical since it is not easy to access the nth number in the sequence.
+The function also does not handle negative numbers or floating-point numbers.
+
+\section{}
+\begin{lstlisting}[language=Oz]
+local Sum TailSum in
+    fun {Sum List}
+        {TailSum List 0}
+    end
+
+    fun {TailSum List Acc}
+        case List
+            of nil then Acc
+            [] H|T then {TailSum T H+Acc}
+        end
+    end
+
+    {System.show {Sum [1 2 3 4 5]}}
+end
+\end{lstlisting}
+\begin{verbatim}
+    Which has the output: 15
+\end{verbatim}
+
+\subsection{b)}
+The benefit of tail recursion in Oz is that it allows the compiler to optimize the code and avoid stack overflow errors by reusing the same stack frame for each recursive call.
+
+\subsection{c)}
+No, not all programming languages that allow recursion benefit from tail recursion.
+Some languages do not optimize tail recursion and will still use the stack to store the function calls, which can lead to stack overflow errors.
+Other languages like Oz optimize tail recursion and reuse the same stack frame for each recursive call, which avoids stack overflow errors.
+
+   \end{document}
