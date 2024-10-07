@@ -1,3 +1,4 @@
+import scala.collection.mutable.ArrayBuffer
 object Main {
   def main(args: Array[String]): Unit = {
     // Task 1
@@ -11,12 +12,11 @@ object Main {
   }
 }
 
-
 object task1 {
   def run() = {
     // a)
     var arr = Array.range(1, 51)
- 
+
     // b)
     println("Sum of the array: " + sumOfArray(arr))
 
@@ -41,12 +41,10 @@ object task1 {
     else arr.head + sumRecursive(arr.tail)
   }
 
-
   def Fibonacci(n: BigInt): BigInt = {
     if (n <= 1) n
     else Fibonacci(n - 1) + Fibonacci(n - 2)
   }
-
 
 }
 
@@ -59,7 +57,7 @@ object task2 {
     var x2 = scala.collection.mutable.ArrayBuffer[Double]()
     var realSol = scala.collection.mutable.ArrayBuffer[Boolean]()
 
-    QuadraticEquation(2,1,-1,realSol,x1,x2)
+    QuadraticEquation(2, 1, -1, realSol, x1, x2)
     println("Real solutions: " + realSol)
     println("x1: " + x1)
     println("x2: " + x2)
@@ -68,24 +66,25 @@ object task2 {
     x2.clear()
     realSol.clear()
 
-
-    QuadraticEquation(2,1,2,realSol,x1,x2)
+    QuadraticEquation(2, 1, 2, realSol, x1, x2)
     println("Real solutions: " + realSol)
     println("x1: " + x1)
     println("x2: " + x2)
 
-
     // assignment 3 task 4
-    val f = Quadratic(3,2,1)
+    val f = Quadratic(3, 2, 1)
     println(f(2))
 
-
-  
-
   }
-  type mutableArray[T] = scala.collection.mutable.ArrayBuffer[T]
 
-  def QuadraticEquation(a: Double, b: Double, c: Double, realSol: mutableArray[Boolean], x1: mutableArray[Double], x2: mutableArray[Double]) = {
+  def QuadraticEquation(
+      a: Double,
+      b: Double,
+      c: Double,
+      realSol: ArrayBuffer[Boolean],
+      x1: ArrayBuffer[Double],
+      x2: ArrayBuffer[Double]
+  ) = {
     var d = b * b - 4 * a * c
     if (d > 0) {
       realSol += true
@@ -99,9 +98,8 @@ object task2 {
     }
   }
 
-
-  def Quadratic(a:Int,b:Int,c:Int): Int => Int = {
-    (x: Int) => a*x*x + b*x + c
+  def Quadratic(a: Int, b: Int, c: Int): Int => Int = { (x: Int) =>
+    a * x * x + b * x + c
   }
 }
 
@@ -123,8 +121,6 @@ object task3 {
     t2.join()
     t3.join()
   }
-
-
 
   def runner(task: () => Unit): Thread = {
     new Thread(() => task())
