@@ -28,6 +28,12 @@ object task1 {
     // The difference between Int and BigInt is that Int is a 32-bit signed integer, while BigInt can grow as large as you need it to be, depending on the size of the number you give it.
   }
 
+  /**
+   * Computes the sum of all elements in an array of integers.
+   *
+   * @param arr An array of integers whose elements are to be summed.
+   * @return The sum of all elements in the input array.
+   */
   def sumOfArray(arr: Array[Int]): Int = {
     var sum = 0
     for (i <- 0 until arr.length) {
@@ -36,11 +42,23 @@ object task1 {
     return sum
   }
 
+  /**
+   * Computes the sum of an array of integers using recursion.
+   *
+   * @param arr The array of integers to sum.
+   * @return The sum of the integers in the array. If the array is empty, returns 0.
+   */
   def sumRecursive(arr: Array[Int]): Int = {
     if (arr.isEmpty) 0
     else arr.head + sumRecursive(arr.tail)
   }
 
+  /**
+   * Computes the Fibonacci number for a given position.
+   *
+   * @param n The position in the Fibonacci sequence.
+   * @return The Fibonacci number at the given position.
+   */
   def Fibonacci(n: BigInt): BigInt = {
     if (n <= 1) n
     else Fibonacci(n - 1) + Fibonacci(n - 2)
@@ -77,6 +95,21 @@ object task2 {
 
   }
 
+  /**
+   * Solves the quadratic equation of the form ax^2 + bx + c = 0.
+   *
+   * @param a The coefficient of x^2.
+   * @param b The coefficient of x.
+   * @param c The constant term.
+   * @param realSol An ArrayBuffer to store whether the solutions are real (true) or not (false).
+   * @param x1 An ArrayBuffer to store the first solution (if it exists).
+   * @param x2 An ArrayBuffer to store the second solution (if it exists).
+   *
+   * The function calculates the discriminant (d) of the quadratic equation:
+   * - If d > 0, there are two distinct real solutions, which are added to x1 and x2.
+   * - If d == 0, there is one real solution, which is added to x1.
+   * - If d < 0, there are no real solutions, and realSol is updated to false.
+   */
   def QuadraticEquation(
       a: Double,
       b: Double,
@@ -98,6 +131,14 @@ object task2 {
     }
   }
 
+  /**
+   * Defines a quadratic function based on the coefficients a, b, and c.
+   *
+   * @param a The coefficient of the x^2 term.
+   * @param b The coefficient of the x term.
+   * @param c The constant term.
+   * @return A function that takes an integer x and computes the value of the quadratic equation a*x^2 + b*x + c.
+   */
   def Quadratic(a: Int, b: Int, c: Int): Int => Int = { (x: Int) =>
     a * x * x + b * x + c
   }
@@ -122,6 +163,12 @@ object task3 {
     t3.join()
   }
 
+  /**
+   * Creates a new thread that will execute the given task.
+   *
+   * @param task A function with no arguments and no return value that represents the task to be executed.
+   * @return A new Thread instance that will run the provided task when started.
+   */
   def runner(task: () => Unit): Thread = {
     new Thread(() => task())
   }
