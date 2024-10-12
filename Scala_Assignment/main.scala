@@ -71,9 +71,9 @@ object task2 {
   def run() = {
 
     // a)  assignment 3 task 1
-    var x1 = scala.collection.mutable.ArrayBuffer[Double]()
-    var x2 = scala.collection.mutable.ArrayBuffer[Double]()
-    var realSol = scala.collection.mutable.ArrayBuffer[Boolean]()
+    var x1 = ArrayBuffer[Double]()
+    var x2 = ArrayBuffer[Double]()
+    var realSol = ArrayBuffer[Boolean]()
 
     QuadraticEquation(2, 1, -1, realSol, x1, x2)
     println("Real solutions: " + realSol)
