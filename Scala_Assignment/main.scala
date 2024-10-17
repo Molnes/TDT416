@@ -140,7 +140,7 @@ object task2 {
    * @return A function that takes an integer x and computes the value of the quadratic equation a*x^2 + b*x + c.
    */
   def Quadratic(a: Int, b: Int, c: Int): Int => Int = { (x: Int) =>
-    a * x * x + b * x + c
+    (a * x * x) + (b * x) + c
   }
 }
 
