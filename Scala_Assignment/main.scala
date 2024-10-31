@@ -15,7 +15,11 @@ object Main {
 object task1 {
   def run() = {
     // a)
-    var arr = Array.range(1, 51)
+    var arr = Array[Int]()
+    for (i <- 1 to 50) {
+      arr = arr :+ i
+    }
+    println("Array: " + arr.mkString(", "))
 
     // b)
     println("Sum of the array: " + sumOfArray(arr))
@@ -140,7 +144,7 @@ object task2 {
    * @return A function that takes an integer x and computes the value of the quadratic equation a*x^2 + b*x + c.
    */
   def Quadratic(a: Int, b: Int, c: Int): Int => Int = { (x: Int) =>
-    a * x * x + b * x + c
+    (a * x * x) + (b * x) + c
   }
 }
 
