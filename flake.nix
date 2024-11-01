@@ -25,6 +25,7 @@
 pkgs.texlive.combined.scheme-full
             elixir
             locales
+            pkgs.sbt
           ];
 
 
