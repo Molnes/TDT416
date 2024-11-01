@@ -9,12 +9,24 @@ class Bank(val allowedAttempts: Integer = 3) {
 
   def processing: Boolean = !transactionsPool.isEmpty
 
+/**
+ * Transfers a specified amount of money from one account to another.
+ *
+ * @param from The account ID to transfer money from.
+ * @param to The account ID to transfer money to.
+ * @param amount The amount of money to transfer.
+ */
   def transfer(from: String, to: String, amount: Double): Unit = {
     transactionsPool.synchronized {
       transactionsPool.add(new Transaction(from, to, amount, allowedAttempts))
     }
   }
 
+/**
+ * Processes all the transactions in the bank system.
+ * This method handles the logic for processing various types of transactions
+ * such as deposits, withdrawals, and transfers.
+ */
   def processTransactions: Unit = {
     if (transactionsPool.isEmpty) return
       val workers: List[Thread] = transactionsPool.iterator.toList
@@ -51,6 +63,12 @@ class Bank(val allowedAttempts: Integer = 3) {
         processTransactions
       }
   }
+/**
+ * Processes a single transaction in a separate thread.
+ *
+ * @param t The transaction to be processed.
+ * @return A thread that processes the given transaction.
+ */
   private def processSingleTransaction(t: Transaction): Thread = {
     return new Thread {
       override def run(): Unit = {
@@ -90,16 +108,35 @@ class Bank(val allowedAttempts: Integer = 3) {
     }
   }
 
+/**
+ * Creates a new bank account with the specified initial balance.
+ *
+ * @param initialBalance The initial balance to be set for the new account.
+ * @return A unique identifier (UUID) for the newly created account.
+ */
   def createAccount(initialBalance: Double): String = {
     val code = java.util.UUID.randomUUID.toString
     accountsRegistry += (code -> new Account(code, initialBalance))
     code
   }
 
+/**
+ * Retrieves an account from the accounts registry.
+ * 
+ * @param code The unique identifier for the account to be retrieved.
+ * @return An optional account if it exists in the registry.
+ *        None otherwise.
+ */
   def getAccount(code: String): Option[Account] = {
     accountsRegistry.get(code)
   }
 
+/**
+ * Replaces an existing account in the accounts registry with a new account.
+ *
+ * @param code The unique identifier for the account to be replaced.
+ * @param account The new account to replace the existing one.
+ */
   def replaceAccount(code: String, account: Account): Unit = {
     accountsRegistry += (code -> account)
   }
