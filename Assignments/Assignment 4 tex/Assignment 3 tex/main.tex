@@ -1,0 +1,153 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{alltt}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath}
+
+\lstset{
+    backgroundcolor=\color{green!10},
+    basicstyle=\ttfamily,
+    breaklines=true,
+    columns=fullflexible,
+    frame=single,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{gray},
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+    }
+
+% Changed the section command to say "Task #"
+\def\thesection{Task \arabic{section}}
+% Added a familiar HTML command for new paragraph
+\newcommand{\p}{\medskip\noindent}
+
+% Meta, should be edited and filled in with relative information
+\title{TDT4165 Programming Languages Assignment 4}
+\author{Jakob Holkestad Molnes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% Use \section for tasks
+\section{}
+\subsection{a)}
+30
+10
+20
+3000
+100
+200
+\subsection{b)}
+30 (from {System.show C})
+10 (from the first thread)
+20 (from the second thread)
+3000 (from {System.show C * 100})
+100 (from the first thread after 100 ms delay)
+200 (from the second thread after 100 ms delay)
+
+It is possible that the output is not in the order of the threads, as the threads are running concurrently. This means that the threads are not guaranteed to finish in the order they were started. 
+
+\subsection{c)}
+2
+20
+22
+\subsection{d)}
+2 (from the first thread where A is assigned to 2)
+20 (from the second thread where B is assigned to A * 10)
+22 (from the main thread where C is assigned to A + B)
+
+It cant print in any other order, since C relies on A and B, and B relies on A.
+Oz waits on unbound variables, so it will wait for A to be assigned before it can assign B, and it will wait for B to be assigned before it can assign C.
+
+\section{}
+\subsection{a)}
+\begin{lstlisting}[language=Oz]
+fun {Enumerate Start End} UTail in
+    thread 
+        if Start =< End then
+            thread UTail = {Enumerate Start+1 End} end
+            Start|UTail
+        else 
+            nil
+        end
+    end
+end
+\end{lstlisting}
+
+\subsection{b)}
+\begin{lstlisting}[language=Oz]
+fun {GenerateOdd Start End} IntList in 
+    IntList = {Enumerate Start End}
+    thread {List.foldR IntList fun {$ X Y} if {Int.isOdd X} 
+        then X|Y 
+        else Y end 
+    end nil }
+    end
+end
+\end{lstlisting}
+
+\subsection{c)}
+Both functions return a \_<optimized> when printed through show. The reason for this is that Oz's compiler detects the use of asynchronous recursion and lazy evaluation due to the thread keyword within Enumerate. By generating the list asynchronously and evaluating elements only as needed, the compiler applies an optimization, showing it with the <optimized> output.
+
+\section{}
+\subsection{a)}
+\begin{lstlisting}[language=Oz]
+fun { ListDivisorsOf Number} NumberList in
+    NumberList = { Enumerate 1 Number}
+    thread { List.foldR NumberList fun {$ X Y} if { Int.'mod' Number X} == 0 then X | Y else Y end end
+    nil } end
+end
+\end{lstlisting}
+
+
+\subsection{b)}
+
+\begin{lstlisting}[language=Oz]
+fun {ListPrimesUntil N} NumberList in
+    NumberList = { Enumerate 1 N}
+    thread { List.foldR NumberList fun {$ X Y} thread if
+    { List.length { ListDivisorsOf X}} == 2 then X |
+    Y else Y end end end nil } end
+end
+\end{lstlisting}
+
+\section{}
+\subsection{a)}
+\begin{lstlisting}[language=Oz]
+fun {EnumerateLazy} Func in
+    fun lazy {Func N}
+        N | {Func N+1}
+    end
+   1 | {Func 2}
+end
+\end{lstlisting}
+
+\subsection{b)}
+\begin{lstlisting}[language=Oz]
+fun {Primes} Func StartNumberList in
+    fun lazy {Func N NumberList}
+        case NumberList of H | T then
+            case {ListDivisorsOf N} of _|_|_|_ then
+                {Func H T}
+            else
+                N | {Func H T}
+            end
+        end
+    end
+    StartNumberList = {EnumerateLazy}
+    case StartNumberList of _|X2|X3|T then
+        X2 | {Func X3 T}
+    end
+end
+\end{lstlisting}
+
+
+   \end{document}
