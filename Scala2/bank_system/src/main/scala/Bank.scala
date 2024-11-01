@@ -2,64 +2,105 @@ import collection.mutable.Map
 
 class Bank(val allowedAttempts: Integer = 3) {
 
-    private val accountsRegistry : Map[String,Account] = Map()
+  private val accountsRegistry: Map[String, Account] = Map()
 
-    val transactionsPool: TransactionPool = new TransactionPool()
-    val completedTransactions: TransactionPool = new TransactionPool()
+  val transactionsPool: TransactionPool = new TransactionPool()
+  val completedTransactions: TransactionPool = new TransactionPool()
 
+  def processing: Boolean = !transactionsPool.isEmpty
 
-    def processing : Boolean = !transactionsPool.isEmpty
-
-    // TODO
-    // Adds a new transaction for the transfer to the transaction pool
-    def transfer(from: String, to: String, amount: Double): Unit = ???
-
-    // TODO
-    // Process the transactions in the transaction pool
-    // The implementation needs to be completed and possibly fixed
-    def processTransactions: Unit = {
-
-        // val workers : List[Thread] = transactionsPool.iterator.toList
-        //                                        .filter(/* select only pending transactions */)
-        //                                        .map(processSingleTransaction)
-
-        // workers.map( element => element.start() )
-        // workers.map( element => element.join() )
-
-        /* TODO: change to select only transactions that succeeded */
-        // val succeded : List[Transaction] = transactionsPool
-
-        /* TODO: change to select only transactions that failed */
-        // val failed : List[Transaction] = transactionsPool
-
-        // succeded.map(/* remove transactions from the transaction pool */)
-        // succeded.map(/* add transactions to the completed transactions queue */)
-
-        //failed.map(t => { 
-            /*  transactions that failed need to be set as pending again; 
-                if the number of retry has exceeded they also need to be removed from
-                the transaction pool and to be added to the queue of completed transactions */
-        //})
-
-        if(!transactionsPool.isEmpty) {
-            processTransactions
-        }
+  def transfer(from: String, to: String, amount: Double): Unit = {
+    transactionsPool.synchronized {
+      transactionsPool.add(new Transaction(from, to, amount, allowedAttempts))
     }
+  }
 
-    // TODO
-    // The function creates a new thread ready to process
-    // the transaction, and returns it as a return value
-    private def processSingleTransaction(t : Transaction) : Thread =  ???
+  def processTransactions: Unit = {
+    if (transactionsPool.isEmpty) return
+      val workers: List[Thread] = transactionsPool.iterator.toList
+        .filter(_.getStatus() == TransactionStatus.PENDING)
+        .map(processSingleTransaction)
 
+      workers.foreach(element => element.start())
+      workers.foreach(element => element.join())
 
-    // TODO
-    // Creates a new account and returns its code to the user.
-    // The account is stored in the local registry of bank accounts.
-    def createAccount(initialBalance: Double) : String = ???
+      /* TODO: change to select only transactions that succeeded */
+      val succeded: List[Transaction] = transactionsPool.iterator.toList
+        .filter(_.getStatus() == TransactionStatus.SUCCESS)
 
+      /* TODO: change to select only transactions that failed */
+      val failed: List[Transaction] = transactionsPool.iterator.toList
+        .filter(_.getStatus() == TransactionStatus.FAILED)
 
-    // TODO
-    // Return information about a certain account based on its code.
-    // Remember to handle the case in which the account does not exist
-    def getAccount(code : String) : Option[Account] = ???
+      succeded.map(transactionsPool.remove(_))
+      succeded.map(completedTransactions.add(_))
+
+      failed.map(t => {
+        if (t.getAttempts() >= t.retries) {
+          transactionsPool.remove(t)
+          completedTransactions.add(t)
+        } else {
+          transactionsPool.remove(t)
+          t.incrementAttempts()
+          t.setStatus(TransactionStatus.PENDING)
+          transactionsPool.add(t)
+        }
+      })
+
+      if (!transactionsPool.isEmpty) {
+        processTransactions
+      }
+  }
+  private def processSingleTransaction(t: Transaction): Thread = {
+    return new Thread {
+      override def run(): Unit = {
+        accountsRegistry.synchronized {
+          val fromAccount = getAccount(t.from)
+          val toAccount = getAccount(t.to)
+
+          val monney = t.amount
+
+          if (fromAccount.isDefined && toAccount.isDefined) {
+            val from = fromAccount.get
+            val to = toAccount.get
+            from.withdraw(monney) match {
+              case Left(_) => t.setStatus(TransactionStatus.FAILED)
+              case Right(newFrom) => {
+                to.deposit(monney) match {
+                  case Left(_) => {
+                    from.deposit(monney)
+
+                    t.setStatus(TransactionStatus.FAILED)
+                  }
+                  case Right(newTo) => {
+
+                    replaceAccount(from.code, newFrom)
+                    replaceAccount(to.code, newTo)
+
+                    t.setStatus(TransactionStatus.SUCCESS)
+                  }
+                }
+              }
+            }
+          } else {
+            t.setStatus(TransactionStatus.FAILED)
+          }
+        }
+      }
+    }
+  }
+
+  def createAccount(initialBalance: Double): String = {
+    val code = java.util.UUID.randomUUID.toString
+    accountsRegistry += (code -> new Account(code, initialBalance))
+    code
+  }
+
+  def getAccount(code: String): Option[Account] = {
+    accountsRegistry.get(code)
+  }
+
+  def replaceAccount(code: String, account: Account): Unit = {
+    accountsRegistry += (code -> account)
+  }
 }
